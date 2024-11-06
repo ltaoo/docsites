@@ -1,16 +1,17 @@
-# docsites
+# DocSites
 
-A new Flutter project.
+日常开发中，经常会需要查文档。
+<br>
+但是经常由于网络不稳定，要么很慢要么干脆就访问不了，非常影响开发体验。
 
-## Getting Started
+所以开发了这样一个工具 `DocSites`
+<br>
+使用该工具访问网站后，会将网站的请求缓存到本地，即使离线了，也能正常访问。
 
-This project is a starting point for a Flutter application.
+> 可以看作一个简易版的「网站归档」
 
-A few resources to get you started if this is your first Flutter project:
+## 打包
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter build
+```
