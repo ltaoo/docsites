@@ -1,0 +1,6 @@
+{
+  "appTitle": "docsites",
+  "@appTitle": {
+    "description": "The title of the application"
+  }
+}
