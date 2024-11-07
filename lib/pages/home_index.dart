@@ -66,16 +66,16 @@ class WebResourceManageCore {
     try {
       final request = http.Request(arg.method, url);
       request.headers.addAll(arg.headers);
-      print("[]download $url");
+      // print("[]download $url ${arg.method}");
       final response = await request.send();
       if (response.statusCode == 200) {
         var bytes = utf8.encode(arg.url);
         var filename = md5.convert(bytes).toString();
-        String parentDir = path.join(app.paths.site, id.toString());
-        await Util.ensureDirectoriesExist(parentDir);
-        String filepath = path.join(parentDir, filename);
+        String dir = path.join(app.paths.site, id.toString());
+        // await Util.ensureDirectoriesExist(parentDir);
+        String filepath = path.join(dir, filename);
         final file = File(filepath);
-        print("[]save $url to $filepath");
+        // print("[]save $url to $filepath");
         final body = await http.Response.fromStream(response);
         await file.writeAsBytes(body.bodyBytes);
         var tmp = WebResourceTmp(
@@ -85,7 +85,7 @@ class WebResourceManageCore {
           filekey: filename,
         );
         _urlToLocalPathMap[arg.url] = tmp;
-        createWebResource(tmp, filename);
+        await createWebResource(tmp, filename);
         return Result.ok(filepath);
       }
       print('请求失败，状态码: ${response.statusCode}');
@@ -95,7 +95,7 @@ class WebResourceManageCore {
     return Result.error("下载失败");
   }
 
-  void createWebResource(WebResourceTmp arg, String filekey) async {
+  Future<void> createWebResource(WebResourceTmp arg, String filekey) async {
     ApplicationCore _app = app;
     var r = await findWebResourceByURL(arg.url);
     if (r != null) {
@@ -250,19 +250,27 @@ class CalendarPageState extends State<HomeIndexPageView> {
             InAppWebView(
               key: webViewKey,
               initialUrlRequest: URLRequest(url: WebUri(url)),
-              initialSettings:
-                  InAppWebViewSettings(transparentBackground: true, safeBrowsingEnabled: true, isFraudulentWebsiteWarningEnabled: true, useShouldInterceptRequest: true),
+              initialSettings: InAppWebViewSettings(
+                  transparentBackground: true,
+                  safeBrowsingEnabled: true,
+                  isFraudulentWebsiteWarningEnabled: true,
+                  useShouldInterceptFetchRequest: true,
+                  useShouldInterceptRequest: true),
               shouldInterceptRequest: (controller, request) async {
                 final url = request.url.toString();
-                // print("handle request ${url}");
+                print("[]shouldInterceptRequest ${request.url}");
                 var r = await networkStorage.getWebResource(url);
                 if (r.error == null) {
                   // print("using cache of ${url}");
                   var data = r.data!;
                   return WebResourceResponse(contentEncoding: data.headers['ContentEncoding'], contentType: data.headers['ContentType'], headers: data.headers, data: data.data);
                 }
-                // print("download request ${url}");
-                networkStorage.download(WebResourceDownloadArg(url: url, method: request.method ?? "GET", headers: request.headers ?? {}));
+                print("download request ${url} ${request.method} ${request.headers}");
+                await networkStorage.download(WebResourceDownloadArg(url: url, method: request.method ?? "GET", headers: request.headers ?? {}));
+              },
+              shouldInterceptFetchRequest: (controller, request) async {
+                print("[]shouldInterceptFetchRequest ${request.url}");
+                print(request.body);
               },
               onWebViewCreated: (controller) async {
                 webViewController = controller;

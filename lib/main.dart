@@ -27,7 +27,7 @@ void main(List<String> args) async {
   //   return;
   // }
   // await WindowManagerPlus.ensureInitialized(args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0);
-  const size = Size(1200, 800); // 设置初始宽度为800，高度为600
+  const size = Size(1220, 800);
   WindowOptions windowOptions = const WindowOptions(
     size: size,
     center: true,
@@ -43,8 +43,9 @@ void main(List<String> args) async {
     await windowManager.focus();
   });
 
-  var paths = ApplicationPaths(root: "", site: "", archive: "", database: "");
+  var paths = ApplicationPaths(root: "", site: "", archive: "", database: "", download: "");
   await paths.ensure();
+  print(paths.download);
   var database = AppDatabase();
   var application = ApplicationCore(paths: paths, db: database);
 

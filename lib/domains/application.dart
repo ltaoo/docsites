@@ -13,8 +13,9 @@ class ApplicationPaths {
   String site;
   String archive;
   String database;
+  String download;
 
-  ApplicationPaths({required this.root, required this.site, required this.archive, required this.database});
+  ApplicationPaths({required this.root, required this.site, required this.archive, required this.database, required this.download});
 
   ensure() async {
     Directory directory = await getApplicationDocumentsDirectory();
@@ -34,6 +35,10 @@ class ApplicationPaths {
     await Util.ensureDirectoriesExist(archive);
     database = path.join(root, "database");
     await Util.ensureDirectoriesExist(database);
+    Directory? directory_download = await getDownloadsDirectory();
+    if (directory_download != null) {
+      download = directory_download.path;
+    }
   }
 }
 

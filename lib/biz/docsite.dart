@@ -1,8 +1,40 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:docsites/domains/result.dart';
+import 'package:docsites/database/database.dart';
 import 'package:http/http.dart' as http;
+import 'package:drift/drift.dart' as drift;
+import 'package:path/path.dart' as path;
+
+import '/domains/application.dart';
+import '/domains/result.dart';
+import '/utils.dart';
+
+class DocsiteCore {
+  ApplicationCore app;
+
+  DocsiteCore({required this.app});
+
+  Future<int> create(DocsiteValuesCore values) async {
+    if (values.favicon == "") {
+      var r = await fetchWebsiteAndFindFavicon(values.url);
+      if (r.data != null) {
+        values.setFavicon(r.data!);
+      }
+    }
+    var record = await app.db.into(app.db.docSites).insert(
+        DocSitesCompanion.insert(url: values.url, name: values.name, overview: drift.Value(values.overview), favicon: drift.Value(values.favicon), createdAt: DateTime.now()));
+    String dir = path.join(app.paths.site, record.toString());
+    await Util.ensureDirectoriesExist(dir);
+    return record;
+  }
+
+  Future<int> createFile(DocsiteArchiveMainJSFile values, int fromId) async {
+    var record = await app.db.into(app.db.webResources).insert(WebResourcesCompanion.insert(
+        url: values.url, method: drift.Value(values.method), headers: drift.Value(values.headers), filekey: drift.Value(values.filekey), siteFrom: fromId));
+    return record;
+  }
+}
 
 class DocsiteValuesCore {
   String _url = "";
@@ -37,9 +69,58 @@ class DocsiteValuesCore {
     _favicon = v;
   }
 
+  setValues(Map<String, String> data) {
+    final url = data['url'];
+    if (url != null) {
+      setURL(url);
+    }
+    final name = data['name'];
+    if (name != null) {
+      setName(name);
+    }
+    final overview = data['overview'];
+    if (overview != null) {
+      setOverview(overview);
+    }
+    final favicon = data['favicon'];
+    if (favicon != null) {
+      setFavicon(favicon);
+    }
+  }
+
   @override
   String toString() {
     return '{name: $_name, url: $_url}';
+  }
+}
+
+class DocsiteArchiveMainJSFile {
+  final String url;
+  final String method;
+  final String headers;
+  final String filekey;
+
+  DocsiteArchiveMainJSFile({required this.url, required this.method, required this.headers, required this.filekey});
+
+  @override
+  String toString() {
+    return 'url:$url, method:$method';
+  }
+}
+
+class DocsiteArchiveMainJS {
+  final String url;
+  final String name;
+  final String overview;
+  final String favicon;
+  final String? version;
+  final List<DocsiteArchiveMainJSFile> files;
+
+  DocsiteArchiveMainJS({required this.name, required this.url, required this.overview, required this.favicon, this.version, required this.files});
+
+  @override
+  String toString() {
+    return 'name:$name, url$url, files:${files.length}';
   }
 }
 

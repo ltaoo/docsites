@@ -27,35 +27,27 @@ class HomeLayoutState extends State<HomeLayoutView> with TrayListener, WindowLis
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(children: [
-        Center(
-            child: Row(
-          children: [
-            Expanded(
-                child: Navigator(
-              key: _navigatorKey,
-              initialRoute: widget.route,
-              onGenerateRoute: _onGenerateRoute,
-            ))
-          ],
-        )),
-      ]),
-    );
-  }
-
-  Route<Widget> _onGenerateRoute(RouteSettings settings) {
-    return MaterialPageRoute(
-      settings: settings,
-      builder: (context) {
-        final page = switch (settings.name) {
-          // TaskListPage.routeName => TaskListPage(),
-          _ => (() {
-              return SiteListPage();
-            })()
-        };
-        return page;
-      },
-    );
+        backgroundColor: Colors.white,
+        body: Row(
+          children: [Expanded(child: SiteListPage())],
+        )
+        // body: Navigator(
+        //   key: _navigatorKey,
+        //   initialRoute: widget.route,
+        //   onGenerateRoute: _onGenerateRoute,
+        // )
+        // body: Stack(children: [
+        //   Row(
+        //     children: [
+        //       Expanded(
+        //           child: Navigator(
+        //         key: _navigatorKey,
+        //         initialRoute: widget.route,
+        //         onGenerateRoute: _onGenerateRoute,
+        //       ))
+        //     ],
+        //   ),
+        // ]),
+        );
   }
 }
