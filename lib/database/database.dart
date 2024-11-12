@@ -32,14 +32,16 @@ class DocSites extends Table {
 class WebResources extends Table {
   // 资源地址
   TextColumn get url => text().named("url")();
-  // 资源响应时 headers
-  TextColumn get headers => text().nullable().named("headers")();
   // 请求方法
   TextColumn get method => text().nullable().named("method")();
-  // 缓存到本地后的唯一标志
+  // 请求体
+  TextColumn get body => text().nullable().named("body")();
+  // 资源响应时 headers
+  TextColumn get headers => text().nullable().named("headers")();
+  // 缓存到本地后的唯一标志，其实就是「响应内容」
   TextColumn get filekey => text().nullable().named("file_key")();
   // 所属网站
-  IntColumn get siteFrom => integer().references(DocSites, #id).named("site_from_id")();
+  IntColumn get siteFromId => integer().references(DocSites, #id).named("site_from_id")();
 }
 
 class Settings extends Table {

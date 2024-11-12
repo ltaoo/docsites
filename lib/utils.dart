@@ -38,6 +38,10 @@ class Util {
     return kIsWeb;
   }
 
+  static Future<void> sleep(int delay) async {
+    await Future.delayed(Duration(seconds: delay));
+  }
+
   static Future<void> ensureDirectoriesExist(String path) async {
     final dir = Directory(path);
     final lastPart = path.split('/').last;

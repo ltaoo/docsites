@@ -18,9 +18,11 @@ import '/utils.dart';
 class WebResourceDownloadArg {
   final String url;
   final String method;
+  final String? body;
   final Map<String, String> headers;
 
   WebResourceDownloadArg({
+    this.body,
     required this.url,
     required this.method,
     required this.headers,
@@ -61,16 +63,25 @@ class WebResourceManageCore {
 
   final Map<String, WebResourceTmp> _urlToLocalPathMap = {};
 
+  String buildUniqueKey(WebResourceDownloadArg arg) {
+    var bytes = utf8.encode([arg.url, arg.method, arg.body].join('/'));
+    var filename = md5.convert(bytes).toString();
+    return filename;
+  }
+
   Future<Result<String?>> download(WebResourceDownloadArg arg) async {
     var url = Uri.parse(arg.url);
     try {
       final request = http.Request(arg.method, url);
+      if (arg.method == "POST" && arg.body != null) {
+        request.body = arg.body ?? "{}";
+      }
       request.headers.addAll(arg.headers);
       // print("[]download $url ${arg.method}");
       final response = await request.send();
-      if (response.statusCode == 200) {
-        var bytes = utf8.encode(arg.url);
-        var filename = md5.convert(bytes).toString();
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        // var bytes = utf8.encode([arg.url, arg.method, arg.body].join('/'));
+        var filename = buildUniqueKey(arg);
         String dir = path.join(app.paths.site, id.toString());
         // await Util.ensureDirectoriesExist(parentDir);
         String filepath = path.join(dir, filename);
@@ -114,9 +125,13 @@ class WebResourceManageCore {
     return null;
   }
 
-  Future<Result<WebResourceResp>> getWebResource(String url) async {
+  Future<Result<WebResourceResp>> getWebResource(WebResourceRequest request) async {
+    final url = request.url.toString();
+    // final method = request.method.toString();
+    // final body = request.body.toString();
     WebResourceTmp? tmp = _urlToLocalPathMap[url];
     if (tmp != null) {
+      // 在当前声明周期内重复访问同一个页面，会到这里
       String filepath = path.join(app.paths.site, id.toString(), tmp.filekey);
       File file = File(filepath);
       Uint8List data = await file.readAsBytes();
@@ -258,18 +273,18 @@ class CalendarPageState extends State<HomeIndexPageView> {
                   useShouldInterceptRequest: true),
               shouldInterceptRequest: (controller, request) async {
                 final url = request.url.toString();
-                print("[]shouldInterceptRequest ${request.url}");
-                var r = await networkStorage.getWebResource(url);
+                print(url);
+                var r = await networkStorage.getWebResource(request);
                 if (r.error == null) {
                   // print("using cache of ${url}");
                   var data = r.data!;
                   return WebResourceResponse(contentEncoding: data.headers['ContentEncoding'], contentType: data.headers['ContentType'], headers: data.headers, data: data.data);
                 }
-                print("download request ${url} ${request.method} ${request.headers}");
-                await networkStorage.download(WebResourceDownloadArg(url: url, method: request.method ?? "GET", headers: request.headers ?? {}));
+                // print("download request ${url} ${request.method} ${request.headers}");
+                await networkStorage.download(WebResourceDownloadArg(url: url, method: request.method ?? "GET", body: request.body, headers: request.headers ?? {}));
               },
               shouldInterceptFetchRequest: (controller, request) async {
-                print("[]shouldInterceptFetchRequest ${request.url}");
+                // print("[]shouldInterceptFetchRequest ${request.url}");
                 print(request.body);
               },
               onWebViewCreated: (controller) async {

@@ -5,10 +5,12 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   desktop_multi_window
+  file_selector_windows
   flutter_inappwebview_windows
   screen_retriever_windows
   sqlite3_flutter_libs
   tray_manager
+  url_launcher_windows
   window_manager
 )
 
